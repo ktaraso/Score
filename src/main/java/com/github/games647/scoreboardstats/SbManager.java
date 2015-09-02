@@ -69,9 +69,11 @@ public abstract class SbManager {
         }
 
         //Creates a new personal scoreboard and a new objective
-        scoreboard.addObjective(SB_NAME, Settings.getTitle());
+        Group objective = scoreboard.addObjective(SB_NAME, Settings.getTitle());
 
+        sendConstantItems(objective, player);
         sendUpdate(player, true);
+
         //Schedule the next tempscoreboard show
         scheduleShowTask(player, true);
     }
@@ -95,7 +97,7 @@ public abstract class SbManager {
         //Colorize and send all elements
         for (Map.Entry<String, Integer> entry : plugin.getStatsDatabase().getTop()) {
             final String scoreName = stripLength(Settings.getTempColor() + entry.getKey());
-            sendScore(objective, scoreName, entry.getValue());
+            sendScore(objective, scoreName, scoreName, entry.getValue());
         }
 
         //schedule the next normal scoreboard show
@@ -117,7 +119,7 @@ public abstract class SbManager {
         if (scoreboard != null) {
             final Group objective = scoreboard.getObjective(SB_NAME);
             if (objective != null) {
-                sendScore(objective, itemName, newScore);
+                sendScore(objective, itemName, itemName, newScore);
             }
         }
     }
@@ -175,22 +177,74 @@ public abstract class SbManager {
         final Group objective = getOrCreateScoreboard(player).getCurrentSidebar();
         //don't override other scoreboards
         if (objective != null && SB_NAME.equals(objective.getUniqueId())) {
-            final Iterator<Map.Entry<String, String>> iter = Settings.getItems();
-            while (iter.hasNext()) {
-                final Map.Entry<String, String> entry = iter.next();
-                final String title = entry.getKey();
-                final String variable = entry.getValue();
+            sendScoreVariable(objective, player, complete);
+            sendTextVariable(objective, player, complete);
+        }
+    }
 
-                try {
-                    final ReplaceEvent replaceEvent = replaceManager.getScore(player, variable, title, 0, complete);
-                    if (replaceEvent.isModified()) {
-                        sendScore(objective, title, replaceEvent.getScore());
-                    }
-                } catch (UnknownVariableException ex) {
-                    //Remove the variable becaue we can't replace it
-                    iter.remove();
-                    plugin.getLogger().info(Lang.get("unknownVariable", variable));
+    private void sendConstantItems(Group objective, Player player) {
+        for (Map.Entry<String, Integer> entry : Settings.getConstantItems()) {
+            final String title = entry.getKey();
+            final int score = entry.getValue();
+
+            sendScore(objective, title, title, score);
+        }
+    }
+
+    private void sendTextVariable(Group objective, Player player, boolean complete) {
+        final Iterator<Map.Entry<String, String>> iter = Settings.getTextItems();
+        while (iter.hasNext()) {
+            final Map.Entry<String, String> entry = iter.next();
+            final String title = entry.getKey();
+            final String variable = entry.getValue();
+
+            final Item item = objective.getItem(title);
+            try {
+                String displayName = title;
+                int oldScore = 0;
+                if (item != null) {
+                    displayName = title;
+                    oldScore = item.getScore();
                 }
+
+                final ReplaceEvent replaceEvent = replaceManager.getScore(player, variable, true, displayName
+                        , oldScore, complete);
+                if (replaceEvent.isModified()) {
+                    sendScore(objective, title, replaceEvent.getDisplayText(), replaceEvent.getScore());
+                }
+            } catch (UnknownVariableException ex) {
+                //Remove the variable becaue we can't replace it
+                iter.remove();
+                plugin.getLogger().info(Lang.get("unknownVariable", variable));
+            }
+        }
+    }
+
+    private void sendScoreVariable(final Group objective, Player player, boolean complete) {
+        final Iterator<Map.Entry<String, String>> iter = Settings.getItems();
+        while (iter.hasNext()) {
+            final Map.Entry<String, String> entry = iter.next();
+            final String title = entry.getKey();
+            final String variable = entry.getValue();
+
+            final Item item = objective.getItem(title);
+            try {
+                String displayName = title;
+                int oldScore = 0;
+                if (item != null) {
+                    displayName = title;
+                    oldScore = item.getScore();
+                }
+
+                final ReplaceEvent replaceEvent = replaceManager.getScore(player, variable, false, displayName
+                        , oldScore, complete);
+                if (replaceEvent.isModified()) {
+                    sendScore(objective, title, replaceEvent.getDisplayText(), replaceEvent.getScore());
+                }
+            } catch (UnknownVariableException ex) {
+                //Remove the variable becaue we can't replace it
+                iter.remove();
+                plugin.getLogger().info(Lang.get("unknownVariable", variable));
             }
         }
     }
@@ -223,12 +277,14 @@ public abstract class SbManager {
                 && Settings.isActiveWorld(player.getWorld().getName());
     }
 
-    private void sendScore(Group objective, String title, int value) {
+    private void sendScore(Group objective, String title, String newTitle, int value) {
         Item score = objective.getItem(title);
         if (score == null) {
-            objective.addItem(title, value);
+            score = objective.addItem(title, value);
         } else {
             score.setScore(value);
         }
+
+        score.setDisplayName(newTitle);
     }
 }

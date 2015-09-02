@@ -161,8 +161,8 @@ public class PacketListener extends PacketAdapter {
         String suffix = packet.getStrings().read(3);
 
         Collection<String> players = packet.getSpecificModifier(Collection.class).read(0);
-        
-        final byte state = packet.getIntegers().read(0).byteValue();
+
+        final int state = packet.getIntegers().read(1);
         switch (state) {
             case 0:
                 //created

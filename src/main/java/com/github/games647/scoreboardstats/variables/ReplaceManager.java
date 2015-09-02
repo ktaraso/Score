@@ -215,15 +215,17 @@ public class ReplaceManager implements Listener {
      *
      * @param player the associated player
      * @param variable the variable
+     * @param textVariable is it a text or number variable
      * @param displayName the display name of the scoreboard item
      * @param oldScore the score of the scoreboard item
      * @param complete whether it's the first refresh
      * @return the modified state
      * @throws UnknownVariableException if the variable couldn't be replace
      */
-    public ReplaceEvent getScore(Player player, String variable, String displayName, int oldScore, boolean complete)
+    public ReplaceEvent getScore(Player player, String variable, boolean textVariable
+            , String displayName, int oldScore, boolean complete)
             throws UnknownVariableException {
-        final ReplaceEvent replaceEvent = new ReplaceEvent(variable, false, false, displayName, oldScore);
+        final ReplaceEvent replaceEvent = new ReplaceEvent(variable, textVariable, displayName, oldScore);
         if (!complete && skipList.contains(variable)) {
             //Check if the variable can be updated with event handlers or is global
             //therefore we just need a initial value
@@ -249,7 +251,7 @@ public class ReplaceManager implements Listener {
             }
         }
 
-        if (complete && replaceEvent.isConstant()) {
+        if (complete && replaceEvent.isEventVariable()) {
             skipList.add(variable);
             //they are updated with events so we don't need to update it manually
             globals.remove(variable);
@@ -265,7 +267,7 @@ public class ReplaceManager implements Listener {
         for (Map.Entry<String, VariableReplaceAdapter<?>> entrySet : globals.entrySet()) {
             final String variable = entrySet.getKey();
             final String displayName = Settings.getItemName(variable);
-            final ReplaceEvent replaceEvent = new ReplaceEvent(variable, false, false, displayName, -1);
+            final ReplaceEvent replaceEvent = new ReplaceEvent(variable, false, displayName, -1);
 
             final VariableReplaceAdapter<? extends Plugin> globalReplacer = entrySet.getValue();
             globalReplacer.onReplace(null, variable, replaceEvent);

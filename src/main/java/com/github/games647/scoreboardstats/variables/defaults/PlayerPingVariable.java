@@ -27,7 +27,8 @@ public class PlayerPingVariable extends VariableReplaceAdapter<Plugin> {
 
     @Override
     public void onReplace(Player player, String variable, ReplaceEvent replaceEvent) {
-        replaceEvent.setScore(getReflectionPing(player));
+        int ping = getReflectionPing(player);
+        replaceEvent.setScoreOrText(ping);
     }
 
     private int getReflectionPing(Player player) {

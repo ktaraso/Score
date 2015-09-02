@@ -43,6 +43,6 @@ public class LegacyReplacerTest {
            }
        }, "pluginName");
 
-       replaceManager.getScore(null, "variableName", "test", -1, true);
+       replaceManager.getScore(null, "variableName", false, "test", -1, true);
    }
 }

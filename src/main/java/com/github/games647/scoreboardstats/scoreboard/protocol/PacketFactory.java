@@ -142,6 +142,7 @@ public class PacketFactory {
     public static void sendTeamPacket(PacketTeam packetTeam, String player, State state) {
         final PacketContainer teamPacket = PROTOCOL_MANAGER.createPacket(PacketType.Play.Server.SCOREBOARD_TEAM, true);
 
+        teamPacket.getIntegers().write(1, state.ordinal());
         teamPacket.getStrings().write(0, packetTeam.getUniqueId());
         if (state == State.CREATE) {
             teamPacket.getStrings().write(1, packetTeam.getDisplayName());

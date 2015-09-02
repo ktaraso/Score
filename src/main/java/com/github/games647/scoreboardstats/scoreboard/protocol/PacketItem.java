@@ -66,28 +66,30 @@ public class PacketItem implements Item {
 
     @Override
     public void setDisplayName(String newName) {
-        if (uniqueId.equals(scoreName)) {
-            //not a generated id
-            throw new IllegalStateException("This scoreboard item has no generated id");
-        }
-
-        this.scoreName = newName;
-        PacketTeam team = parent.getScoreboard().getTeamForPlayer(uniqueId);
-        if (team != null) {
-            String prefix = "";
-            String suffix = "";
-            if (newName.length() > 16) {
-                prefix = newName.substring(0, 16);
-                suffix = newName.substring(16);
-            } else {
-                //prioritize to use suffix so we don't need to check the previous colors
-                suffix = newName.substring(0, newName.length());
+        if (!scoreName.equals(newName)) {
+            if (uniqueId.equals(scoreName)) {
+                //not a generated id
+                throw new IllegalStateException("This scoreboard item has no generated id");
             }
-            
-            team.setPrefix(prefix);
-            team.setSuffix(suffix);
 
-            PacketFactory.sendTeamPacket(team, null, State.UPDATE);
+            this.scoreName = newName;
+            PacketTeam team = parent.getScoreboard().getTeamForPlayer(uniqueId);
+            if (team != null) {
+                String prefix = "";
+                String suffix = "";
+                if (newName.length() > 16) {
+                    prefix = newName.substring(0, 16);
+                    suffix = newName.substring(16);
+                } else {
+                    //prioritize to use suffix so we don't need to check the previous colors
+                    suffix = newName.substring(0, newName.length());
+                }
+
+                team.setPrefix(prefix);
+                team.setSuffix(suffix);
+
+                PacketFactory.sendTeamPacket(team, null, State.UPDATE);
+            }
         }
     }
 
