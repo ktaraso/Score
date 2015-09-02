@@ -210,14 +210,6 @@ public class ReplaceManager implements Listener {
         }
     }
 
-//    public void updateVariableLater(String variable) {
-//
-//    }
-//
-//    public void updateVariableLater(Player player, String variable) {
-//
-//    }
-
     /**
      * Get the score for a specific variable.
      *

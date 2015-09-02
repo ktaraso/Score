@@ -1,10 +1,11 @@
-package com.github.games647.scoreboardstats.protocol;
+package com.github.games647.scoreboardstats.scoreboard.protocol;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
+import java.util.Collection;
 
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
@@ -15,7 +16,7 @@ import org.bukkit.scoreboard.DisplaySlot;
  * This Listener should only read and listen to relevant packets.
  *
  * Protocol specifications can be found here http://wiki.vg/Protocol
-*
+ *
  * @see PacketFactory
  * @see PacketAdapter
  */
@@ -25,6 +26,7 @@ public class PacketListener extends PacketAdapter {
     private static final PacketType DISPLAY_TYPE = PacketType.Play.Server.SCOREBOARD_DISPLAY_OBJECTIVE;
     private static final PacketType OBJECTIVE_TYPE = PacketType.Play.Server.SCOREBOARD_OBJECTIVE;
     private static final PacketType SCORE_TYPE = PacketType.Play.Server.SCOREBOARD_SCORE;
+    private static final PacketType TEAM_TYPE = PacketType.Play.Server.SCOREBOARD_TEAM;
 
     private final PacketSbManager manager;
 
@@ -35,7 +37,7 @@ public class PacketListener extends PacketAdapter {
      * @param manager packet manager instance
      */
     public PacketListener(Plugin plugin, PacketSbManager manager) {
-        super(plugin, DISPLAY_TYPE, OBJECTIVE_TYPE, SCORE_TYPE);
+        super(plugin, DISPLAY_TYPE, OBJECTIVE_TYPE, SCORE_TYPE, TEAM_TYPE);
 
         this.manager = manager;
     }
@@ -53,6 +55,8 @@ public class PacketListener extends PacketAdapter {
             handleObjectivePacket(event);
         } else if (packetType.equals(DISPLAY_TYPE)) {
             handleDisplayPacket(event);
+        } else if (packetType.equals(TEAM_TYPE)) {
+            handleTeamPacket(event);
         }
     }
 
@@ -82,12 +86,12 @@ public class PacketListener extends PacketAdapter {
             return;
         }
 
-        final PlayerScoreboard scoreboard = manager.getScoreboard(player);
+        final PacketScoreboard scoreboard = manager.getOrCreateScoreboard(player);
         //scores actually only have two state id, because these
         if (action == State.CREATE) {
-            scoreboard.createOrUpdateScore(scoreName, parent, score);
+            scoreboard.scoreCreatedOrChanged(scoreName, parent, score);
         } else if (action == State.REMOVE) {
-            scoreboard.resetScore(scoreName);
+            scoreboard.scoreRemoved(scoreName);
         }
     }
 
@@ -106,16 +110,16 @@ public class PacketListener extends PacketAdapter {
             return;
         }
 
-        final PlayerScoreboard scoreboard = manager.getScoreboard(player);
-        final Objective objective = scoreboard.getObjective(objectiveName);
+        final PacketScoreboard scoreboard = manager.getOrCreateScoreboard(player);
+        final PacketObjective objective = scoreboard.getObjective(objectiveName);
         if (action == State.CREATE) {
-            scoreboard.addObjective(objectiveName, displayName);
+            scoreboard.objectiveAdded(objectiveName, displayName);
         } else if (objective != null) {
             //Could cause a NPE at the client if the objective wasn't found
             if (action == State.REMOVE) {
-                scoreboard.removeObjective(objectiveName);
-            } else if (action == State.UPDATE_TITLE) {
-                objective.setDisplayName(displayName, false);
+                scoreboard.objectiveRemoved(objectiveName);
+            } else if (action == State.UPDATE) {
+                objective.displayNameChanged(displayName, false);
             }
         }
     }
@@ -133,14 +137,54 @@ public class PacketListener extends PacketAdapter {
             return;
         }
 
-        final PlayerScoreboard scoreboard = manager.getScoreboard(player);
+        final PacketScoreboard scoreboard = manager.getOrCreateScoreboard(player);
         if (slot == DisplaySlot.SIDEBAR) {
-            scoreboard.setSidebarObjective(objectiveName);
+            scoreboard.sidebarObjectiveChanged(objectiveName);
         } else {
-            final Objective sidebarObjective = scoreboard.getSidebarObjective();
-            if (sidebarObjective != null && sidebarObjective.getName().equals(objectiveName)) {
-                scoreboard.clearSidebarObjective();
+            final PacketObjective sidebarObjective = scoreboard.getCurrentSidebar();
+            if (sidebarObjective != null && sidebarObjective.getUniqueId().equals(objectiveName)) {
+                scoreboard.sidebarObjectiveCleared();
             }
+        }
+    }
+
+    private void handleTeamPacket(PacketEvent event) {
+        final Player player = event.getPlayer();
+        final PacketContainer packet = event.getPacket();
+
+        final PacketScoreboard scoreboard = manager.getOrCreateScoreboard(player);
+
+        final String name = packet.getStrings().read(0);
+
+        String displayName = packet.getStrings().read(1);
+        String prefix = packet.getStrings().read(2);
+        String suffix = packet.getStrings().read(3);
+
+        Collection<String> players = packet.getSpecificModifier(Collection.class).read(0);
+        
+        final byte state = packet.getIntegers().read(0).byteValue();
+        switch (state) {
+            case 0:
+                //created
+                scoreboard.teamCreated(name, displayName, prefix, suffix, players);
+                break;
+            case 2:
+                //team info updated
+                scoreboard.teamInfoChanged(name, displayName, prefix, suffix);
+                break;
+            case 1:
+                //removed
+                scoreboard.teamRemoved(name);
+                break;
+            case 3:
+                //new player
+                scoreboard.teamPlayerAdded(name, players);
+                break;
+            case 4:
+            default:
+                //player removed
+                scoreboard.teamPlayerRemoved(name, players);
+                break;
         }
     }
 }

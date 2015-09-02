@@ -1,4 +1,6 @@
-package com.github.games647.scoreboardstats;
+package com.github.games647.scoreboardstats.scoreboard;
+
+import com.github.games647.scoreboardstats.SbManager;
 
 import org.bukkit.entity.Player;
 
@@ -10,24 +12,24 @@ public class DelayedShowTask implements Runnable {
     private final SbManager scoreboardManager;
 
     private final Player player;
-    private final boolean action;
+    private final boolean showTop;
 
     /**
      * Creates a new scheduled appear of the normal scoreboard or the temp scoreboard
      *
      * @param player the specific player
-     * @param action if the temp scoreboard be displayed
+     * @param showTop if the temp scoreboard be displayed
      * @param scoreboardManager the associated sbManager
      */
-    public DelayedShowTask(Player player, boolean action, SbManager scoreboardManager) {
+    public DelayedShowTask(Player player, boolean showTop, SbManager scoreboardManager) {
         this.scoreboardManager = scoreboardManager;
         this.player = player;
-        this.action = action;
+        this.showTop = showTop;
     }
 
     @Override
     public void run() {
-        if (action) {
+        if (showTop) {
             scoreboardManager.createTopListScoreboard(player);
         } else {
             scoreboardManager.createScoreboard(player);

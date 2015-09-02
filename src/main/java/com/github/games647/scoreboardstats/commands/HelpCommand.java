@@ -33,9 +33,7 @@ public class HelpCommand extends CommandHandler {
     public void onCommand(CommandSender sender, String subCommand, String... args) {
         if (args.length == 0) {
             showHelpPage(sender, 1);
-        }
-
-        if (args.length != 0) {
+        } else {
             final Integer pageNumber = Integer.getInteger(args[0]);
             if (pageNumber == null) {
                 showCommandHelp(sender, args[0]);
@@ -70,7 +68,7 @@ public class HelpCommand extends CommandHandler {
         }
 
         sender.sendMessage(ChatColor.GOLD + "Help for: " + command);
-        //todo colorize
+
         sender.sendMessage(ChatColor.DARK_AQUA + "Aliases: " + handler.getAliases());
         sender.sendMessage(ChatColor.DARK_AQUA + "Permission: " + handler.getPermission());
         sender.sendMessage(ChatColor.DARK_AQUA + "Description: " + handler.getDescription());

@@ -1,7 +1,17 @@
 package com.github.games647.scoreboardstats;
 
+import com.github.games647.scoreboardstats.config.Lang;
 import com.github.games647.scoreboardstats.config.Settings;
+import com.github.games647.scoreboardstats.scoreboard.DelayedShowTask;
+import com.github.games647.scoreboardstats.scoreboard.Item;
+import com.github.games647.scoreboardstats.scoreboard.Group;
+import com.github.games647.scoreboardstats.scoreboard.Scoreboard;
+import com.github.games647.scoreboardstats.variables.ReplaceEvent;
 import com.github.games647.scoreboardstats.variables.ReplaceManager;
+import com.github.games647.scoreboardstats.variables.UnknownVariableException;
+
+import java.util.Iterator;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -28,6 +38,8 @@ public abstract class SbManager {
         this.permission = plugin.getName().toLowerCase() + ".use";
     }
 
+    public abstract Scoreboard getOrCreateScoreboard(Player player);
+
     /**
      * Get the replace manager.
      *
@@ -38,6 +50,7 @@ public abstract class SbManager {
      * @return the replace manager
      * @deprecated Use ScoreboardStats.getReplaceManager
      */
+    @Deprecated
     public ReplaceManager getReplaceManager() {
         return replaceManager;
     }
@@ -47,13 +60,67 @@ public abstract class SbManager {
      *
      * @param player for who should the scoreboard be set.
      */
-    public abstract void createScoreboard(Player player);
+    public void createScoreboard(Player player) {
+        Scoreboard scoreboard = getOrCreateScoreboard(player);
+        final Group oldObjective = scoreboard.getCurrentSidebar();
+        if (!isValid(player) || oldObjective != null && !TEMP_SB_NAME.equals(oldObjective.getUniqueId())) {
+            //Check if another scoreboard is showing
+            return;
+        }
 
-    public abstract void createTopListScoreboard(Player player);
+        //Creates a new personal scoreboard and a new objective
+        scoreboard.addObjective(SB_NAME, Settings.getTitle());
 
-    public abstract void onUpdate(Player player);
+        sendUpdate(player, true);
+        //Schedule the next tempscoreboard show
+        scheduleShowTask(player, true);
+    }
 
-    public abstract void update(Player player, String variable, int newScore);
+    public void createTopListScoreboard(Player player) {
+        Scoreboard scoreboard = getOrCreateScoreboard(player);
+        final Group oldObjective = scoreboard.getCurrentSidebar();
+        if (!isValid(player) || oldObjective == null
+                || !oldObjective.getUniqueId().startsWith(SB_NAME)) {
+            //Check if another scoreboard is showing
+            return;
+        }
+
+        //remove old scores
+        if (TEMP_SB_NAME.equals(oldObjective.getUniqueId())) {
+            oldObjective.remove();
+        }
+
+        final Group objective = scoreboard.addObjective(TEMP_SB_NAME, Settings.getTempTitle());
+
+        //Colorize and send all elements
+        for (Map.Entry<String, Integer> entry : plugin.getStatsDatabase().getTop()) {
+            final String scoreName = stripLength(Settings.getTempColor() + entry.getKey());
+            sendScore(objective, scoreName, entry.getValue());
+        }
+
+        //schedule the next normal scoreboard show
+        scheduleShowTask(player, false);
+    }
+
+    public void onUpdate(Player player) {
+        final Group objective = getOrCreateScoreboard(player).getCurrentSidebar();
+        if (objective == null) {
+            //The player has no scoreboard so create one
+            createScoreboard(player);
+        } else {
+            sendUpdate(player, false);
+        }
+    }
+
+    public void update(Player player, String itemName, int newScore) {
+        final Scoreboard scoreboard = getOrCreateScoreboard(player);
+        if (scoreboard != null) {
+            final Group objective = scoreboard.getObjective(SB_NAME);
+            if (objective != null) {
+                sendScore(objective, itemName, newScore);
+            }
+        }
+    }
 
     /**
      * Adding all players to the refresh queue and loading the player stats if enabled
@@ -87,15 +154,46 @@ public abstract class SbManager {
      *
      * @param player who owns the scoreboard
      */
-    public abstract void unregister(Player player);
+    public void unregister(Player player) {
+        if (player.isOnline()) {
+            for (Group objective : getOrCreateScoreboard(player).getGroups()) {
+                final String objectiveName = objective.getUniqueId();
+                if (objectiveName.startsWith(SB_NAME)) {
+                    objective.remove();
+                }
+            }
+        }
+    }
 
     /**
      * Called if the scoreboard should be updated.
      *
      * @param player for who should the scoreboard be set.
-     * @param complete if the scoreboard was created
+     * @param complete if the scoreboard was just created
      */
-    protected abstract void sendUpdate(Player player, boolean complete);
+    protected void sendUpdate(Player player, boolean complete) {
+        final Group objective = getOrCreateScoreboard(player).getCurrentSidebar();
+        //don't override other scoreboards
+        if (objective != null && SB_NAME.equals(objective.getUniqueId())) {
+            final Iterator<Map.Entry<String, String>> iter = Settings.getItems();
+            while (iter.hasNext()) {
+                final Map.Entry<String, String> entry = iter.next();
+                final String title = entry.getKey();
+                final String variable = entry.getValue();
+
+                try {
+                    final ReplaceEvent replaceEvent = replaceManager.getScore(player, variable, title, 0, complete);
+                    if (replaceEvent.isModified()) {
+                        sendScore(objective, title, replaceEvent.getScore());
+                    }
+                } catch (UnknownVariableException ex) {
+                    //Remove the variable becaue we can't replace it
+                    iter.remove();
+                    plugin.getLogger().info(Lang.get("unknownVariable", variable));
+                }
+            }
+        }
+    }
 
     protected void scheduleShowTask(Player player, boolean action) {
         if (!Settings.isTempScoreboard()) {
@@ -123,5 +221,14 @@ public abstract class SbManager {
     protected boolean isValid(Player player) {
         return player.hasPermission(permission) && player.isOnline()
                 && Settings.isActiveWorld(player.getWorld().getName());
+    }
+
+    private void sendScore(Group objective, String title, int value) {
+        Item score = objective.getItem(title);
+        if (score == null) {
+            objective.addItem(title, value);
+        } else {
+            score.setScore(value);
+        }
     }
 }

@@ -1,15 +1,16 @@
 package com.github.games647.scoreboardstats;
 
+import com.avaje.ebean.EbeanServer;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.github.games647.scoreboardstats.config.Lang;
 import com.github.games647.scoreboardstats.config.Settings;
 import com.github.games647.scoreboardstats.commands.SidebarCommands;
-import com.avaje.ebean.EbeanServer;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.github.games647.scoreboardstats.Updater.UpdateCallback;
 import com.github.games647.scoreboardstats.Updater.UpdateResult;
-import com.github.games647.scoreboardstats.protocol.PacketSbManager;
 import com.github.games647.scoreboardstats.pvpstats.Database;
 import com.github.games647.scoreboardstats.pvpstats.PlayerStats;
+import com.github.games647.scoreboardstats.scoreboard.bukkit.BukkitSbManager;
+import com.github.games647.scoreboardstats.scoreboard.protocol.PacketSbManager;
 import com.github.games647.scoreboardstats.variables.ReplaceManager;
 import com.google.common.collect.Lists;
 
@@ -148,8 +149,8 @@ public class ScoreboardStats extends JavaPlugin {
         //Register all events
         getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
 
-        //register all commands
-        getCommand("sidebar").setExecutor(new SidebarCommands(this));
+        //register all commands based on the root command of this plugin
+        getCommand(getName().toLowerCase()).setExecutor(new SidebarCommands(this));
 
         //start tracking the ticks
         getServer().getScheduler().runTaskTimer(this, new TicksPerSecondTask(), 5 * 20L, 3 * 20L);
@@ -159,7 +160,7 @@ public class ScoreboardStats extends JavaPlugin {
         if (Settings.isCompatibilityMode()) {
             scoreboardManager = new PacketSbManager(this);
         } else {
-            scoreboardManager = new BukkitScoreboardManager(this);
+            scoreboardManager = new BukkitSbManager(this);
         }
 
         if (Settings.isPvpStats()) {
@@ -211,7 +212,7 @@ public class ScoreboardStats extends JavaPlugin {
         if (Settings.isCompatibilityMode()) {
             scoreboardManager = new PacketSbManager(this);
         } else {
-            scoreboardManager = new BukkitScoreboardManager(this);
+            scoreboardManager = new BukkitSbManager(this);
         }
 
         if (database != null) {

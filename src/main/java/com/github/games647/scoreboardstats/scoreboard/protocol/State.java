@@ -1,4 +1,4 @@
-package com.github.games647.scoreboardstats.protocol;
+package com.github.games647.scoreboardstats.scoreboard.protocol;
 
 /**
  * Represents the state of a scoreboard packet
@@ -20,7 +20,7 @@ public enum State {
     /**
      * The display name of the objective was changed
      */
-    UPDATE_TITLE;
+    UPDATE;
 
     /**
      * Get the enum from his id

@@ -10,12 +10,14 @@
     <name>ScoreboardStats</name>
     <inceptionYear>2013</inceptionYear>
     <description>Show the Scoreboard with many custom variables</description>
-    <version>0.9.3</version>
+    <version>0.9.4-SNAPSHOT</version>
     <url>http://dev.bukkit.org/bukkit-plugins/scoreboardstats</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <powermock.version>1.6.2</powermock.version>
+        <!--Possibility to deploy directly to the plugins folder-->
+        <outputDir>${basedir}/target</outputDir>
     </properties>
 
     <issueManagement>
@@ -36,22 +38,6 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
-
-    <ciManagement>
-        <system>Jenkins</system>
-        <!--Not my server; not final-->
-        <url>http://ci.nixium.com/job/ScoreboardStats/</url>
-    </ciManagement>
-
-    <distributionManagement>
-        <repository>
-            <id>nixium-repo</id>
-            <name>nixium maven repo</name>
-            <url>http://ci.nixium.com/plugin/repository/everything/</url>
-            <!--Replace every time with the newest version-->
-            <uniqueVersion>false</uniqueVersion>
-        </repository>
-    </distributionManagement>
 
     <build>
         <defaultGoal>install</defaultGoal>
@@ -80,6 +66,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>2.6</version>
                 <configuration>
+                    <outputDirectory>${outputDir}</outputDirectory>
                     <archive>
                         <manifest>
                             <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
@@ -129,7 +116,7 @@
         <!--ProtocolLib-->
         <repository>
             <id>shadowvolt-repo</id>
-            <url>http://repo.comphenix.net/content/groups/public/</url>
+            <url>http://repo.dmulloy2.net//content/groups/public/</url>
         </repository>
 
         <!--Player points-->
@@ -163,9 +150,7 @@
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <!--Later version aren't backwards compatible-->
-            <!--<version>3.6.2-SNAPSHOT</version>-->
-            <version>3.4.0</version>
+            <version>3.6.5-SNAPSHOT</version>
             <optional>true</optional>
         </dependency>
 

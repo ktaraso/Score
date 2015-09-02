@@ -2,10 +2,12 @@ package com.github.games647.scoreboardstats.variables.defaults;
 
 import com.github.games647.scoreboardstats.variables.ReplaceEvent;
 import com.github.games647.scoreboardstats.variables.VariableReplaceAdapter;
+import com.google.common.collect.Lists;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -39,7 +41,7 @@ public class PlayerPingVariable extends VariableReplaceAdapter<Plugin> {
             final Object entityPlayer = getHandleMethod.invoke(player);
 
             if (pingField == null) {
-                if (Bukkit.getVersion().contains("MCPC") || Bukkit.getVersion().contains("Cauldron")) {
+                if (isModdedServer()) {
                     //MCPC has a remapper, but it doesn't work if we get the class dynamic
                     setMCPCPing(entityPlayer);
                 } else {
@@ -55,6 +57,20 @@ public class PlayerPingVariable extends VariableReplaceAdapter<Plugin> {
             //Forward the exception to replaceManager
             throw new RuntimeException(ex);
         }
+    }
+
+    private static boolean isModdedServer() {
+        //aggressive checking for modded servers
+        List<String> checkVersions = Lists.newArrayList(Bukkit.getVersion(), Bukkit.getName()
+                , Bukkit.getServer().toString());
+
+        for (String version : checkVersions) {
+            if (version.contains("MCPC") || version.contains("Cauldron")) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private void setMCPCPing(Object entityPlayer) {

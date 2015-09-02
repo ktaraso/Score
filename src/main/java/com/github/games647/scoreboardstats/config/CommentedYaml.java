@@ -32,7 +32,7 @@ public class CommentedYaml<T extends Plugin> {
     private static final String COMMENT_PREFIX = "# ";
     private static final String FILE_NAME = "config.yml";
 
-    protected transient final T plugin;
+    protected final transient T plugin;
     protected transient FileConfiguration config;
 
     public CommentedYaml(T plugin) {
@@ -87,19 +87,7 @@ public class CommentedYaml<T extends Plugin> {
             }
 
             field.setAccessible(true);
-            if (config.isSet(path)) {
-                try {
-                    if (config.isString(path)) {
-                        field.set(this, ChatColor.translateAlternateColorCodes('&', config.getString(path)));
-                    } else {
-                        field.set(this, config.get(path));
-                    }
-                } catch (IllegalAccessException ex) {
-                    plugin.getLogger().log(Level.SEVERE, null, ex);
-                }
-            } else {
-                plugin.getLogger().log(Level.INFO, "Path not fond {0}", path);
-            }
+            setField(path, field);
         }
     }
 
@@ -113,6 +101,22 @@ public class CommentedYaml<T extends Plugin> {
             Files.write(config.saveToString(), new File(plugin.getDataFolder(), FILE_NAME), Charsets.UTF_8);
         } catch (IOException ex) {
             plugin.getLogger().log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void setField(String path, Field field) throws IllegalArgumentException {
+        if (config.isSet(path)) {
+            try {
+                if (config.isString(path)) {
+                    field.set(this, ChatColor.translateAlternateColorCodes('&', config.getString(path)));
+                } else {
+                    field.set(this, config.get(path));
+                }
+            } catch (IllegalAccessException ex) {
+                plugin.getLogger().log(Level.SEVERE, null, ex);
+            }
+        } else {
+            plugin.getLogger().log(Level.INFO, "Path not fond {0}", path);
         }
     }
 
