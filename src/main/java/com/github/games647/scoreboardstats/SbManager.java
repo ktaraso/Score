@@ -71,7 +71,7 @@ public abstract class SbManager {
         //Creates a new personal scoreboard and a new objective
         Group objective = scoreboard.addObjective(SB_NAME, Settings.getTitle());
 
-        sendConstantItems(objective, player);
+        sendConstantItems(objective);
         sendUpdate(player, true);
 
         //Schedule the next tempscoreboard show
@@ -182,7 +182,7 @@ public abstract class SbManager {
         }
     }
 
-    private void sendConstantItems(Group objective, Player player) {
+    private void sendConstantItems(Group objective) {
         for (Map.Entry<String, Integer> entry : Settings.getConstantItems()) {
             final String title = entry.getKey();
             final int score = entry.getValue();
@@ -195,8 +195,8 @@ public abstract class SbManager {
         final Iterator<Map.Entry<String, String>> iter = Settings.getTextItems();
         while (iter.hasNext()) {
             final Map.Entry<String, String> entry = iter.next();
-            final String title = entry.getKey();
-            final String variable = entry.getValue();
+            final String variable = entry.getKey();
+            final String title = entry.getValue();
 
             final Item item = objective.getItem(title);
             try {
@@ -220,7 +220,7 @@ public abstract class SbManager {
         }
     }
 
-    private void sendScoreVariable(final Group objective, Player player, boolean complete) {
+    private void sendScoreVariable(Group objective, Player player, boolean complete) {
         final Iterator<Map.Entry<String, String>> iter = Settings.getItems();
         while (iter.hasNext()) {
             final Map.Entry<String, String> entry = iter.next();

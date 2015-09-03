@@ -291,7 +291,7 @@ public class Settings extends CommentedYaml<ScoreboardStats> {
         ITEMS.clear();
 
         for (String key : config.getKeys(false)) {
-            if (ITEMS.size() + CONSTANT_ITEMS.size() + TEXT_ITEMS.size() == 16 - 1) {
+            if (ITEMS.size() + CONSTANT_ITEMS.size() == 16 - 1) {
                 //Only 15 items per sidebar objective are allowed
                 plugin.getLogger().warning(Lang.get("tooManyItems"));
                 break;
@@ -310,13 +310,12 @@ public class Settings extends CommentedYaml<ScoreboardStats> {
                 Pattern p = Pattern.compile("[%]+[\\w]+[%]");
                 Matcher m = p.matcher(key);
 
-                if (m.find()) {
-                    String variable = m.group(0);
-                    TEXT_ITEMS.put(scoreName, variable.replace("%", ""));
+                //insert as constant text
+                CONSTANT_ITEMS.put(scoreName, config.getInt(key));
+                while (m.find()) {
+                    String variable = m.group().replace("%", "");
+                    TEXT_ITEMS.put(variable, scoreName);
                     ITEM_NAMES.put(variable, scoreName);
-                } else {
-                    //insert as constant text
-                    CONSTANT_ITEMS.put(scoreName, config.getInt(key));
                 }
             } else {
                 //Prevent user mistakes
