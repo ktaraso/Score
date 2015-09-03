@@ -25,26 +25,26 @@ public class BukkitScoreboard implements Scoreboard {
     @Override
     public Group getCurrentSidebar() {
         Objective objective = player.getScoreboard().getObjective(DisplaySlot.SIDEBAR);
-        return new BukkitObjective(objective);
+        return new BukkitObjective(this, objective, oldBukkit);
     }
 
     @Override
     public Group getObjective(String uniqueName) {
         Objective objective = player.getScoreboard().getObjective(uniqueName);
-        return new BukkitObjective(objective);
+        return new BukkitObjective(this, objective, oldBukkit);
     }
 
     @Override
     public Group addObjective(String uniqueName) {
         Objective newObjective = player.getScoreboard().registerNewObjective(uniqueName, CRITERIA);
-        return new BukkitObjective(newObjective);
+        return new BukkitObjective(this, newObjective, oldBukkit);
     }
 
     @Override
     public Group addObjective(String uniqueName, String displayName) {
         Objective newObjective = player.getScoreboard().registerNewObjective(uniqueName, CRITERIA);
         newObjective.setDisplayName(displayName);
-        return new BukkitObjective(newObjective);
+        return new BukkitObjective(this, newObjective, oldBukkit);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class BukkitScoreboard implements Scoreboard {
 
         ImmutableSet.Builder<Group> builder = ImmutableSet.builder();
         for (Objective objective : objectives) {
-            builder.add(new BukkitObjective(objective));
+            builder.add(new BukkitObjective(this, objective, oldBukkit));
         }
 
         return builder.build();

@@ -144,6 +144,14 @@ public class ScoreboardStats extends JavaPlugin {
             });
         }
 
+        if (!Settings.isCompatibilityMode()) {
+            getLogger().warning("Because of missing API features in the Bukkit API, the feature has been removed");
+            getLogger().warning("You should activate compatibility mode in the config and download Protocollib");
+
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         refreshTask = new RefreshTask(this);
 
         //Register all events

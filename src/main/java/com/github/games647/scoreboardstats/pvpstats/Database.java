@@ -208,7 +208,7 @@ public class Database {
             public void run() {
                 updateTopList();
             }
-        }, 1, 5, TimeUnit.MINUTES);
+        }, 0, 5, TimeUnit.MINUTES);
 
         registerEvents();
     }

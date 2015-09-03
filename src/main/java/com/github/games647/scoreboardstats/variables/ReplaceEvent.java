@@ -88,6 +88,15 @@ public class ReplaceEvent {
     }
 
     /**
+     * Replaces just the variable in the display name
+     *
+     * @param replacement the result
+     */
+    public void replaceVariable(String replacement) {
+        setDisplayText(StringUtils.replace(displayText, '%' + variable + '%', replacement, 1));
+    }
+
+    /**
      * Get the score of this scoreboard item
      *
      * @return the scoreboard item score

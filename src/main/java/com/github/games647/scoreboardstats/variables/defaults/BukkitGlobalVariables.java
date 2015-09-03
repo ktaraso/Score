@@ -36,7 +36,7 @@ public class BukkitGlobalVariables extends VariableReplaceAdapter<Plugin> implem
         }
 
         if ("online".equals(variable)) {
-            replaceEvent.setScore(Bukkit.getOnlinePlayers().length);
+                replaceEvent.setScore(Bukkit.getOnlinePlayers().length);
             replaceEvent.setConstant(true);
             return;
         }
@@ -49,11 +49,11 @@ public class BukkitGlobalVariables extends VariableReplaceAdapter<Plugin> implem
 
     @EventHandler(ignoreCancelled = true)
     public void onJoin(PlayerJoinEvent joinEvent) {
-        replaceManager.updateScore("online", Bukkit.getOnlinePlayers().length + 1);
+        replaceManager.updateScore("online", Bukkit.getOnlinePlayers().length);
     }
 
     @EventHandler
     public void onQuit(PlayerQuitEvent quitEvent) {
-        replaceManager.updateScore("online", Bukkit.getOnlinePlayers().length - 1);
+        replaceManager.updateScore("online", Bukkit.getOnlinePlayers().length);
     }
 }

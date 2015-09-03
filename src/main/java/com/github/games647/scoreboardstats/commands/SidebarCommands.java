@@ -125,6 +125,7 @@ public class SidebarCommands implements TabExecutor {
         register(new InfoCommand(plugin));
         register(new HelpCommand(plugin, this));
         register(new ReloadCommand(plugin));
+        register(new ScoreboardCommand(plugin));
     }
 
     private void register(CommandHandler handler) {

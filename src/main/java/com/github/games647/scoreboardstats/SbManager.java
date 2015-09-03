@@ -69,10 +69,15 @@ public abstract class SbManager {
         }
 
         //Creates a new personal scoreboard and a new objective
-        Group objective = scoreboard.addObjective(SB_NAME, Settings.getTitle());
-
-        sendConstantItems(objective);
-        sendUpdate(player, true);
+        Group objective = scoreboard.getObjective(SB_NAME);
+        if (objective == null) {
+            //do not create object if it's already exists
+            objective = scoreboard.addObjective(SB_NAME, Settings.getTitle());
+            sendConstantItems(objective);
+            sendUpdate(player, true);
+        } else {
+            objective.show();
+        }
 
         //Schedule the next tempscoreboard show
         scheduleShowTask(player, true);
@@ -92,7 +97,13 @@ public abstract class SbManager {
             oldObjective.remove();
         }
 
-        final Group objective = scoreboard.addObjective(TEMP_SB_NAME, Settings.getTempTitle());
+        Group objective = scoreboard.getObjective(TEMP_SB_NAME);
+        if (objective != null) {
+            //it's easier to remove the objective than clear all scores
+            objective.remove();
+        }
+
+        objective = scoreboard.addObjective(TEMP_SB_NAME, Settings.getTempTitle());
 
         //Colorize and send all elements
         for (Map.Entry<String, Integer> entry : plugin.getStatsDatabase().getTop()) {
