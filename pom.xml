@@ -15,7 +15,7 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <powermock.version>1.6.2</powermock.version>
+        <powermock.version>1.6.4</powermock.version>
         <!--Possibility to deploy directly to the plugins folder-->
         <outputDir>${basedir}/target</outputDir>
     </properties>
@@ -48,7 +48,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.2</version>
+                <version>3.3</version>
                 <configuration>
                     <!--So many people still use Java 6 ;( http://mcstats.org/global/#Java+Version-->
                     <source>1.6</source>
@@ -129,7 +129,7 @@
         <!--Repo for simpleclans-->
         <repository>
             <id>simpleclans-repo</id>
-            <url>http://repo.sacredlabyrinth.net/artifactory/plugins-release-local</url>
+            <url>http://107.170.92.11/artifactory/plugins-release-local</url>
         </repository>
     </repositories>
 
@@ -165,7 +165,7 @@
         <dependency>
             <groupId>net.sacredlabyrinth.phaed.simpleclans</groupId>
             <artifactId>SimpleClans</artifactId>
-            <version>2.5.4</version>
+            <version>2.5.5</version>
             <optional>true</optional>
         </dependency>
 
@@ -179,7 +179,7 @@
         <dependency>
             <groupId>com.greatmancode</groupId>
             <artifactId>craftconomy3</artifactId>
-            <version>3.2.1</version>
+            <version>3.3</version>
             <!--Exclude because the repo is down-->
             <exclusions>
                 <exclusion>
