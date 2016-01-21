@@ -17,5 +17,6 @@ matrix:
 ## Cache maven dependencies
 #sudo: false
 #cache:
+#sdds
 #  directories:
 #    - '$HOME/.m2/repository'
